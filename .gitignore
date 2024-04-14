@@ -1,0 +1,10 @@
+lpsh
+lpsh-*
+.env
+asr33-irc
+asr33-irc-*
+run.sh
+build-and-push.sh
+*~
+ai-irc-bot-*
+ai-irc-bot
