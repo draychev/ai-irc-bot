@@ -199,7 +199,22 @@ func main() {
 			log.Error().Err(err).Msgf("Error asking ChatGPT: %s", message)
 		} else {
 			log.Info().Msgf("Response from ChatGPT: %s", response)
-			irc.Privmsg(channel, strings.Trim(response, "\n"))
+			trimmed := strings.ReplaceAll(response, "\n", "_")
+			if len(trimmed) > 250 {
+				from := 0
+				maxLen := 250
+				for maxLen <= len(trimmed) {
+					irc.Privmsg(channel, trimmed[from:maxLen])
+					time.Sleep(3 * time.Second)
+					from = maxLen
+					maxLen += 250
+					if maxLen > len(trimmed) {
+						maxLen = len(trimmed)
+					}
+				}
+			} else {
+				irc.Privmsg(channel, trimmed)
+			}
 		}
 
 	})
