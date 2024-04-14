@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -82,17 +81,19 @@ type ChatGPTResponse struct {
 	Error *APIError `json:"error"`
 }
 
+const prompt = "Please answer the following question as succinctly as possible in no more than 480 words"
+
 // Function to send a question and receive a response
 func AskChatGPT(question string) (string, error) {
 	apiKey := os.Getenv(envOpenAIAPI)
 	url := "https://api.openai.com/v1/chat/completions"
 
 	reqBody := ChatGPTRequest{
-		Model: "gpt-3.5-turbo", //"gpt-4-turbo"
+		Model: "gpt-4-turbo", // "gpt-3.5-turbo", //"gpt-4-turbo"
 		Messages: []Message{
 			{
 				Role:    "user",
-				Content: question,
+				Content: fmt.Sprintf("%s: %s", prompt, question),
 			},
 		},
 	}
@@ -145,22 +146,8 @@ func AskChatGPT(question string) (string, error) {
 	return "No response received.", nil
 }
 
-func getInput(irc *ircevent.Connection) {
-	for {
-		reader := bufio.NewReader(os.Stdin)
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading input:", err)
-			return
-		}
-		irc.Privmsg(channel, strings.Trim(input, "\n"))
-		// fmt.Printf("%s: %s", irc.Nick, input)
-	}
-}
-
 func main() {
 	checkEnvVars([]string{envIRCServer, envIRCNick, envIRCServerPass, envIRCChannel, envOpenAIAPI})
-
 	/*
 		answ, err := AskChatGPT("what time is it?")
 
@@ -170,7 +157,6 @@ func main() {
 		log.Info().Msgf("Answer: %s", answ)
 		log.Fatal().Msg("bye")
 	*/
-
 	irc.AddConnectCallback(func(e ircmsg.Message) {
 		irc.Join(strings.TrimSpace(channel))
 		// time.Sleep(3 * time.Second)
@@ -227,9 +213,6 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go irc.Loop()
-
-	wg.Add(2)
-	go getInput(irc)
 
 	wg.Wait()
 }
