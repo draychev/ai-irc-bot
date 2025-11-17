@@ -89,7 +89,7 @@ func AskChatGPT(question string) (string, error) {
 	url := "https://api.openai.com/v1/chat/completions"
 
 	reqBody := ChatGPTRequest{
-		Model: "gpt-4-turbo", // "gpt-3.5-turbo", //"gpt-4-turbo"
+		Model: "gpt-5.1",
 		Messages: []Message{
 			{
 				Role:    "user",
