@@ -81,7 +81,10 @@ type ChatGPTResponse struct {
 	Error *APIError `json:"error"`
 }
 
-const prompt = "Please answer the following question as succinctly as possible in no more than 480 words"
+const (
+	maxIRCLen = 250
+	prompt    = "You are replying in a public IRC channel. Output must be plain text only (no markdown, no code blocks, no colors, no emojis, no bullet lists). Keep the response to a single IRC message of at most 250 characters. Be concise."
+)
 
 // Function to send a question and receive a response
 func AskChatGPT(question string) (string, error) {
@@ -185,13 +188,14 @@ func main() {
 			log.Error().Err(err).Msgf("Error asking ChatGPT: %s", message)
 		} else {
 			log.Info().Msgf("Response from ChatGPT: %s", response)
-			trimmed := strings.ReplaceAll(response, "\n", "_")
-			if len(trimmed) < 250 {
+			trimmed := strings.ReplaceAll(response, "\n", " ")
+			trimmed = strings.TrimSpace(trimmed)
+			if len(trimmed) <= maxIRCLen {
 				irc.Privmsg(channel, trimmed)
 				return
 			}
 			from := 0
-			maxLen := 250
+			maxLen := maxIRCLen
 			for {
 				irc.Privmsg(channel, trimmed[from:maxLen])
 				time.Sleep(3 * time.Second)
