@@ -89,7 +89,7 @@ func AskChatGPT(question string) (string, error) {
 	url := "https://api.openai.com/v1/chat/completions"
 
 	reqBody := ChatGPTRequest{
-		Model: "gpt-5.1",
+		Model: "gpt-5.2",
 		Messages: []Message{
 			{
 				Role:    "user",
@@ -169,18 +169,18 @@ func main() {
 		from := strings.Split(e.Source, "!")[0]
 		log.Info().Msgf("%s: %s\n", from, message)
 
-		pref := fmt.Sprintf("%s:", irc.Nick)
-
-		if !strings.HasPrefix(message, pref) {
+		nick := irc.Nick
+		var content string
+		if strings.HasPrefix(message, nick+":") || strings.HasPrefix(message, nick+",") {
+			content = strings.TrimSpace(message[len(nick)+1:])
+		} else {
 			return
 		}
 
-		message = strings.SplitN(message, ":", 2)[1]
+		log.Info().Msgf("%s: %s\n", from, content)
 
-		log.Info().Msgf("%s: %s\n", from, message)
-
-		log.Info().Msgf("Looking for answers for: %s", message)
-		response, err := AskChatGPT(strings.TrimPrefix(message, pref))
+		log.Info().Msgf("Looking for answers for: %s", content)
+		response, err := AskChatGPT(content)
 		if err != nil {
 			log.Error().Err(err).Msgf("Error asking ChatGPT: %s", message)
 		} else {
