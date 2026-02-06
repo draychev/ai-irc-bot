@@ -28,6 +28,9 @@ const (
 
 var log = logger.NewPretty("asr33-irc")
 var channel = os.Getenv(envIRCChannel)
+var ircLogMu sync.Mutex
+
+const ircLogFile = "IRC.log"
 
 func generateRandomTwoDigit() string {
 	rand.Seed(time.Now().UnixNano())
@@ -52,6 +55,23 @@ func checkEnvVars(vars []string) {
 			log.Fatal().Msgf("Please set env var %s", v)
 		}
 	}
+}
+
+func appendIRCLog(nick, message string) {
+	ircLogMu.Lock()
+	defer ircLogMu.Unlock()
+
+	f, err := os.OpenFile(ircLogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to open IRC log file")
+		return
+	}
+	defer f.Close()
+
+	ts := time.Now().Format(time.RFC3339)
+	clean := strings.ReplaceAll(message, "\n", " ")
+	clean = strings.TrimSpace(clean)
+	_, _ = fmt.Fprintf(f, "%s\t%s\t%s\n", ts, nick, clean)
 }
 
 // Define a structure for individual messages in the request
@@ -171,6 +191,10 @@ func main() {
 		message := e.Params[1]
 		from := strings.Split(e.Source, "!")[0]
 		log.Info().Msgf("%s: %s\n", from, message)
+		target := e.Params[0]
+		if target == channel {
+			appendIRCLog(from, message)
+		}
 
 		nick := irc.Nick
 		var content string
