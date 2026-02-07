@@ -200,7 +200,7 @@ func main() {
 		msgLower := strings.ToLower(message)
 		nickLower := strings.ToLower(nick)
 		var content string
-		if strings.HasPrefix(msgLower, nickLower+":") || strings.HasPrefix(msgLower, nickLower+",") {
+		if strings.HasPrefix(msgLower, nickLower) && len(message) > len(nick) {
 			content = strings.TrimSpace(message[len(nick)+1:])
 		} else {
 			return
