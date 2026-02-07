@@ -197,8 +197,10 @@ func main() {
 		}
 
 		nick := irc.Nick
+		msgLower := strings.ToLower(message)
+		nickLower := strings.ToLower(nick)
 		var content string
-		if strings.HasPrefix(message, nick+":") || strings.HasPrefix(message, nick+",") {
+		if strings.HasPrefix(msgLower, nickLower+":") || strings.HasPrefix(msgLower, nickLower+",") {
 			content = strings.TrimSpace(message[len(nick)+1:])
 		} else {
 			return
